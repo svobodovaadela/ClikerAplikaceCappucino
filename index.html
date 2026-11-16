@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cappuccino Clicker ☕</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #4a2e1b, #2b180d);
+    color: #f5e6d3;
+    transition: background 1s ease;
+    overflow-y: auto;
+    position: relative;
+    padding: 20px 0;
+    cursor: auto;
+}
+
+/* --- ANIMACE --- */
+
+@keyframes floatShape {
+    0% { transform: translateY(0px) rotate(0deg) scale(1); }
+    50% { transform: translateY(-30px) rotate(180deg) scale(1.1); }
+    100% { transform: translateY(0px) rotate(360deg) scale(1); }
+}
+
+@keyframes pulseBlob {
+    0% { transform: scale(1); opacity: 0.25; }
+    50% { transform: scale(1.25); opacity: 0.45; }
+    100% { transform: scale(1); opacity: 0.25; }
+}
+
+@keyframes cardFloat {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-80px) scale(1.3);
+    }
+}
+
+@keyframes cupSteam {
+    0% { transform: translateY(0px) scale(1); opacity: 0.9; }
+    50% { transform: translateY(-8px) scale(1.03); opacity: 1; }
+    100% { transform: translateY(0px) scale(1); opacity: 0.9; }
+}
+
+@keyframes waveCoffee {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-2px) scaleY(1.02); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes rainbowGlow {
+    0% { box-shadow: 0 0 15px #ffd700, 0 10px 25px rgba(0, 0, 0, 0.4); }
+    50% { box-shadow: 0 0 35px #ff8c00, 0 15px 35px rgba(0, 0, 0, 0.6); }
+    100% { box-shadow: 0 0 15px #ffd700, 0 10px 25px rgba(0, 0, 0, 0.4); }
+}
+
+@keyframes spillOut {
+    0% { width: 0px; opacity: 0; }
+    100% { width: 220px; opacity: 0.85; }
+}
+
+/* POZADÍ */
+
+.bg-shape {
+    position: fixed;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
+
+.blob {
+    border-radius: 50%;
+    filter: blur(50px);
+    animation: pulseBlob 6s ease-in-out infinite;
+    transition: background 1s ease;
+}
+
+.blob-1 {
+    width: 350px;
+    height: 350px;
+    background: rgba(184, 115, 51, 0.35);
+    top: -60px;
+    left: -60px;
+}
+
+.blob-2 {
+    width: 400px;
+    height: 400px;
+    background: rgba(111, 78, 55, 0.4);
+    bottom: -80px;
+    right: -80px;
+    animation-delay: 3s;
+}
+
+.shape {
+    border: 3px solid rgba(210, 160, 130, 0.25);
+    animation: floatShape 9s linear infinite;
+    transition: border-color 1s ease, background 1s ease;
+}
+
+.circle { border-radius: 50%; }
+.square { border-radius: 20px; }
+
+.sh-1 { width: 75px; height: 75px; top: 12%; left: 8%; animation-duration: 10s; background: rgba(160, 100, 60, 0.1); }
+.sh-2 { width: 55px; height: 55px; top: 18%; right: 10%; animation-duration: 7s; background: rgba(220, 180, 140, 0.15); }
+.sh-3 { width: 95px; height: 95px; bottom: 12%; left: 10%; animation-duration: 12s; background: rgba(140, 80, 40, 0.1); }
+.sh-4 { width: 65px; height: 65px; bottom: 18%; right: 8%; animation-duration: 8s; background: rgba(200, 150, 110, 0.15); }
+
+/* HLAVNÍ KARTA */
+
+.container {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    background: rgba(43, 24, 13, 0.88);
+    border: 2px solid rgba(184, 115, 51, 0.4);
+    padding: 35px 25px;
+    border-radius: 30px;
+    width: 95%;
+    max-width: 520px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5),
+                inset 0 0 20px rgba(184, 115, 51, 0.1);
+    backdrop-filter: blur(12px);
+    animation: cardFloat 4s ease-in-out infinite;
+    transition: border-color 1s ease, background 1s ease;
+}
+
+h1 {
+    font-size: 28px;
+    margin-bottom: 5px;
+    color: #fceadd;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.subtitle {
+    color: #d2a882;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+/* POČÍTADLO */
+
+.counter-box {
+    margin: 15px auto;
+    padding: 15px;
+    max-width: 280px;
+    background: linear-gradient(145deg, #3d2214, #24130a);
+    border: 2px solid #8c5836;
+    border-radius: 25px;
+    box-shadow: inset 0 3px 10px rgba(0,0,0,0.6),
+                0 8px 20px rgba(0,0,0,0.3);
+    transition: border-color 1s ease, background 1s ease;
+}
+
+.counter-label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #d2a882;
+    margin-bottom: 5px;
+}
+
+.counter {
+    font-size: 48px;
+    font-weight: 900;
+    color: #fceadd;
+    text-shadow: 2px 3px 6px rgba(0,0,0,0.5);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+.counter.pop {
+    animation: pop 0.25s ease;
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+/* --- TLAČÍTKO ŠÁLEK S UCHEM --- */
+
+.click-button-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 20px auto 10px auto;
+    animation: cupSteam 3s ease-in-out infinite;
+}
+
+.cup-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: inherit;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cup-container:hover {
+    transform: scale(1.08);
+}
+
+.cup-container:active {
+    transform: scale(0.95);
+}
+
+.coffee-cup-btn {
+    position: relative;
+    background: linear-gradient(135deg, #f5ded1, #d2a882);
+    border: 4px solid #8c5836;
+    border-radius: 20px 20px 50px 50px;
+    width: 140px;
+    height: 105px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4),
+                inset 0 4px 10px rgba(255, 255, 255, 0.8);
+    outline: none;
+    overflow: hidden;
+    z-index: 2;
+    transition: all 0.4s ease;
+}
+
+/* Ucho hrnku */
+.cup-handle {
+    position: absolute;
+    right: -28px;
+    top: 20px;
+    width: 38px;
+    height: 55px;
+    border: 5px solid #8c5836;
+    border-left: none;
+    border-radius: 0 28px 28px 0;
+    background: linear-gradient(135deg, #f5ded1, #d2a882);
+    box-shadow: 3px 5px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+    transition: all 0.4s ease;
+}
+
+.cup-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    background: linear-gradient(to top, #3d2214, #704225);
+    z-index: 1;
+    border-radius: 0 0 46px 46px;
+    transition: height 0.3s ease, background 0.4s ease;
+    animation: waveCoffee 2s ease-in-out infinite;
+}
+
+.spilled-coffee {
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0px;
+    height: 18px;
+    background: radial-gradient(ellipse at center, #704225 0%, #3d2214 70%, transparent 100%);
+    border-radius: 50%;
+    opacity: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.cup-container.maxed .coffee-cup-btn {
+    animation: rainbowGlow 2s infinite;
+    border-color: #ffd700;
+}
+
+.cup-container.maxed .cup-handle {
+    border-color: #ffd700;
+}
+
+.cup-container.maxed ~ .spilled-coffee {
+    animation: spillOut 0.8s ease-out forwards;
+}
+
+/* --- DRUHY SKINŮ HRNKŮ --- */
+
+/* Classic */
+.cup-skin-classic .coffee-cup-btn { background: linear-gradient(135deg, #f5ded1, #d2a882); border-color: #8c5836; }
+.cup-skin-classic .cup-handle { background: linear-gradient(135deg, #f5ded1, #d2a882); border-color: #8c5836; }
+.cup-skin-classic .cup-fill { background: linear-gradient(to top, #3d2214, #704225); }
+
+/* Golden */
+.cup-skin-gold .coffee-cup-btn { background: linear-gradient(135deg, #fff7aa, #ffd700, #b8860b); border-color: #ffffff; box-shadow: 0 0 25px rgba(255, 215, 0, 0.6); }
+.cup-skin-gold .cup-handle { background: linear-gradient(135deg, #fff7aa, #ffd700, #b8860b); border-color: #ffffff; }
+.cup-skin-gold .cup-fill { background: linear-gradient(to top, #7b5900, #ffd700); }
+
+/* Matcha */
+.cup-skin-matcha .coffee-cup-btn { background: linear-gradient(135deg, #e2f0d9, #a9d18e); border-color: #385723; }
+.cup-skin-matcha .cup-handle { background: linear-gradient(135deg, #e2f0d9, #a9d18e); border-color: #385723; }
+.cup-skin-matcha .cup-fill { background: linear-gradient(to top, #1e3910, #548235); }
+
+/* Cyberpunk */
+.cup-skin-cyber .coffee-cup-btn { background: linear-gradient(135deg, #00f2fe, #4facfe); border-color: #ff007f; box-shadow: 0 0 15px #ff007f, inset 0 0 10px #00f2fe; }
+.cup-skin-cyber .cup-handle { background: linear-gradient(135deg, #00f2fe, #4facfe); border-color: #ff007f; }
+.cup-skin-cyber .cup-fill { background: linear-gradient(to top, #ff0055, #ff00cc); }
+
+/* Royal Purple */
+.cup-skin-royal .coffee-cup-btn { background: linear-gradient(135deg, #d8bfd8, #8a2be2); border-color: #4b0082; box-shadow: 0 0 15px rgba(138, 43, 226, 0.5); }
+.cup-skin-royal .cup-handle { background: linear-gradient(135deg, #d8bfd8, #8a2be2); border-color: #4b0082; }
+.cup-skin-royal .cup-fill { background: linear-gradient(to top, #240046, #7b2cbf); }
+
+/* Ice Diamond */
+.cup-skin-diamond .coffee-cup-btn { background: linear-gradient(135deg, #e0ffff, #00ffff, #87cefa); border-color: #ffffff; box-shadow: 0 0 25px rgba(0, 255, 255, 0.8), inset 0 0 15px #ffffff; }
+.cup-skin-diamond .cup-handle { background: linear-gradient(135deg, #e0ffff, #00ffff, #87cefa); border-color: #ffffff; }
+.cup-skin-diamond .cup-fill { background: linear-gradient(to top, #005f73, #0a9396); }
+
+/* Cosmic Void */
+.cup-skin-cosmic .coffee-cup-btn { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); border-color: #ff00ff; box-shadow: 0 0 30px rgba(255, 0, 255, 0.7), inset 0 0 20px #000000; }
+.cup-skin-cosmic .cup-handle { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); border-color: #ff00ff; }
+.cup-skin-cosmic .cup-fill { background: linear-gradient(to top, #5b146f, #b5179e); }
+
+
+.floating-number {
+    position: absolute;
+    font-weight: 900;
+    font-size: 20px;
+    color: #fceadd;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    pointer-events: none;
+    animation: floatUp 0.7s ease-out forwards;
+    z-index: 10;
+}
+
+/* --- NAVIGACE OBCHODU & ZÁLOŽKY --- */
+
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 20px;
+}
+
+.tab-btn {
+    background: rgba(61, 34, 20, 0.7);
+    color: #d2a882;
+    border: 1px solid #8c5836;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    background: #8c5836;
+    color: #fceadd;
+    border-color: #b87333;
+}
+
+.tab-content {
+    display: none;
+    background: rgba(30, 16, 8, 0.6);
+    border: 1px solid #8c5836;
+    border-radius: 0 0 16px 16px;
+    padding: 15px 10px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* SEKCE OSTATNÍCH TLAČÍTEK */
+
+.buttons, .upgrades, .shop-grid {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.add-button, .upgrade-btn, .skin-card {
+    background: linear-gradient(135deg, #8c5836, #593520);
+    color: #fceadd;
+    border: 2px solid #b87333;
+    border-radius: 14px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.add-button:hover, .upgrade-btn:hover, .skin-card:hover {
+    background: linear-gradient(135deg, #a66a42, #70432a);
+    transform: translateY(-2px);
+}
+
+.upgrade-btn:disabled, .skin-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    border-color: #593520;
+}
+
+/* KARTY SKINŮ */
+
+.skin-card {
+    width: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+}
+
+.skin-preview {
+    font-size: 26px;
+    line-height: 1;
+}
+
+.skin-card.equipped {
+    border-color: #00ffcc;
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.6);
+}
+
+/* --- RESET TLAČÍTKO --- */
+
+.reset {
+    display: block;
+    margin: 20px auto 0;
+    padding: 8px 18px;
+    border: 2px solid #8c5836;
+    border-radius: 18px;
+    background: rgba(61, 34, 20, 0.5);
+    color: #d2a882;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reset:hover {
+    background: #593520;
+    color: #fceadd;
+    border-color: #b87333;
+    transform: translateY(-2px);
+}
+
+.footer {
+    margin-top: 15px;
+    font-size: 11px;
+    color: #a67b5b;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- POZADÍ -->
+
+<div class="bg-shape blob blob-1" id="blob1"></div>
+<div class="bg-shape blob blob-2" id="blob2"></div>
+
+<div class="bg-shape shape circle sh-1"></div>
+<div class="bg-shape shape square sh-2"></div>
+<div class="bg-shape shape circle sh-3"></div>
+<div class="bg-shape shape square sh-4"></div>
+
+<!-- APLIKACE -->
+
+<div class="container" id="mainContainer">
+
+    <h1>☕ Cappuccino Clicker</h1>
+
+    <div class="subtitle" id="subtitleText">
+        Naplň šálek až po okraj (cíl: 5000)!
+    </div>
+
+    <div class="counter-box" id="counterBox">
+        <div class="counter-label">
+            ☕ TOTAL CLICKS ☕
+        </div>
+        <div class="counter" id="counter">0</div>
+        <div style="color:#d2a882;font-size:11px;" id="cpsLabel">
+            +0 kapek za sekundu
+        </div>
+    </div>
+
+    <div class="click-button-wrapper">
+        <div class="cup-container cup-skin-classic" id="clickButton">
+            <div class="coffee-cup-btn">
+                <div class="cup-fill" id="cupFill"></div>
+            </div>
+            <div class="cup-handle"></div>
+        </div>
+        <div class="spilled-coffee" id="spilledCoffee"></div>
+    </div>
+
+    <div style="margin-top: 15px; font-size: 12px; color: #d2a882; font-weight: bold;">⚡ Rychlé přidání</div>
+    <div class="buttons" style="margin-top: 6px;">
+        <button class="add-button" onclick="addClicks(10, event)">+10</button>
+        <button class="add-button" onclick="addClicks(100, event)">+100</button>
+        <button class="add-button" onclick="addClicks(1000, event)">+1000</button>
+    </div>
+
+    <!-- ZÁLOŽKY OBCHODU -->
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('upgrades')">🚀 Vylepšení</button>
+        <button class="tab-btn" onclick="switchTab('cupSkins')">🎨 Hrnky</button>
+        <button class="tab-btn" onclick="switchTab('cursorSkins')">🖱️ Kurzy</button>
+    </div>
+
+    <!-- 1. ZÁLOŽKA: VYLEPŠENÍ -->
+    <div class="tab-content active" id="tab-upgrades">
+        <div class="upgrades">
+            <button class="upgrade-btn" id="upgClick" onclick="buyUpgrade('click')">
+                Silnější káva (+1/klik)<br><span id="costClick">50</span> ☕
+            </button>
+            <button class="upgrade-btn" id="upgAuto" onclick="buyUpgrade('auto')">
+                Kávovar (+1/s)<br><span id="costAuto">100</span> ☕
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. ZÁLOŽKA: SKINY HRNKU -->
+    <div class="tab-content" id="tab-cupSkins">
+        <div class="shop-grid" id="cupSkinsGrid">
+            <!-- Vkládá se dynamicky JS -->
+        </div>
+    </div>
+
+    <!-- 3. ZÁLOŽKA: SKINY KURZORU -->
+    <div class="tab-content" id="tab-cursorSkins">
+        <div class="shop-grid" id="cursorSkinsGrid">
+            <!-- Vkládá se dynamicky JS -->
+        </div>
+    </div>
+
+    <button class="reset" onclick="resetClicks()">
+        ↻ Resetovat hru
+    </button>
+
+    <div class="footer">
+        Brewed with ☕ and dark roast love
+    </div>
+
+</div>
+
+<script>
+
+// HERNÍ DATA
+let clicks = Number(localStorage.getItem("clicks")) || 0;
+let clickPower = Number(localStorage.getItem("clickPower")) || 1;
+let autoClickRate = Number(localStorage.getItem("autoClickRate")) || 0;
+let costClick = Number(localStorage.getItem("costClick")) || 50;
+let costAuto = Number(localStorage.getItem("costAuto")) || 100;
+
+let ownedCupSkins = JSON.parse(localStorage.getItem("ownedCupSkins")) || ["classic"];
+let equippedCupSkin = localStorage.getItem("equippedCupSkin") || "classic";
+
+let ownedCursorSkins = JSON.parse(localStorage.getItem("ownedCursorSkins")) || ["default"];
+let equippedCursorSkin = localStorage.getItem("equippedCursorSkin") || "default";
+
+// DEFINICE SKINŮ HRNKŮ (včetně barevných motivů pozadí)
+const CUP_SKINS = [
+    { 
+        id: "classic", 
+        name: "Klasik", 
+        price: 0, 
+        class: "cup-skin-classic", 
+        icon: "☕",
+        bg: ["#4a2e1b", "#2b180d"],
+        blob1: "rgba(184, 115, 51, 0.35)",
+        blob2: "rgba(111, 78, 55, 0.4)"
+    },
+    { 
+        id: "gold", 
+        name: "Zlatý Šálek", 
+        price: 500, 
+        class: "cup-skin-gold", 
+        icon: "⭐",
+        bg: ["#4a3c00", "#1a1500"],
+        blob1: "rgba(255, 215, 0, 0.4)",
+        blob2: "rgba(218, 165, 32, 0.45)"
+    },
+    { 
+        id: "matcha", 
+        name: "Matcha Latte", 
+        price: 1500, 
+        class: "cup-skin-matcha", 
+        icon: "🍵",
+        bg: ["#1e3312", "#0c1706"],
+        blob1: "rgba(120, 180, 80, 0.35)",
+        blob2: "rgba(60, 110, 40, 0.4)"
+    },
+    { 
+        id: "cyber", 
+        name: "Cyberpunk", 
+        price: 3000, 
+        class: "cup-skin-cyber", 
+        icon: "⚡",
+        bg: ["#0b162c", "#1d021f"],
+        blob1: "rgba(0, 242, 254, 0.4)",
+        blob2: "rgba(255, 0, 127, 0.45)"
+    },
+    { 
+        id: "royal", 
+        name: "Královský", 
+        price: 6000, 
+        class: "cup-skin-royal", 
+        icon: "👑",
+        bg: ["#240d33", "#0f0317"],
+        blob1: "rgba(138, 43, 226, 0.4)",
+        blob2: "rgba(75, 0, 130, 0.45)"
+    },
+    { 
+        id: "diamond", 
+        name: "Ledový Diamant", 
+        price: 15000, 
+        class: "cup-skin-diamond", 
+        icon: "💎",
+        bg: ["#042630", "#011017"],
+        blob1: "rgba(0, 255, 255, 0.4)",
+        blob2: "rgba(135, 206, 250, 0.4)"
+    },
+    { 
+        id: "cosmic", 
+        name: "Vesmírná Hmota", 
+        price: 50000, 
+        class: "cup-skin-cosmic", 
+        icon: "🌌",
+        bg: ["#050212", "#13051e"],
+        blob1: "rgba(255, 0, 255, 0.35)",
+        blob2: "rgba(48, 43, 99, 0.5)"
+    }
+];
+
+// DEFINICE SKINŮ KURZORŮ
+const CURSOR_SKINS = [
+    { 
+        id: "default", 
+        name: "Výchozí", 
+        price: 0, 
+        icon: "🖱️",
+        cursorCss: "auto"
+    },
+    { 
+        id: "spoon", 
+        name: "Zlatá lžička", 
+        price: 250, 
+        icon: "🥄",
+        cursorCss: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><text y='24' font-size='22'>🥄</text></svg>") 0 0, auto`
+    },
+    { 
+        id: "matchaleaf", 
+        name: "Matcha Lístek", 
+        price: 800, 
+        icon: "🌿",
+        cursorCss: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><text y='24' font-size='22'>🌿</text></svg>") 0 0, auto`
+    },
+    { 
+        id: "laser", 
+        name: "Neovrstva", 
+        price: 2000, 
+        icon: "✨",
+        cursorCss: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><text y='24' font-size='22'>✨</text></svg>") 0 0, auto`
+    },
+    { 
+        id: "wand", 
+        name: "Magická hůlka", 
+        price: 4500, 
+        icon: "🪄",
+        cursorCss: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><text y='24' font-size='22'>🪄</text></svg>") 0 0, auto`
+    },
+    { 
+        id: "pixel", 
+        name: "Retro Ruka", 
+        price: 8000, 
+        icon: "👆",
+        cursorCss: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><text y='24' font-size='22'>👆</text></svg>") 0 0, auto`
+    }
+];
+
+// DOM ELEMENTY
+const counter = document.getElementById("counter");
+const button = document.getElementById("clickButton");
+const cupFill = document.getElementById("cupFill");
+const subtitleText = document.getElementById("subtitleText");
+const cpsLabel = document.getElementById("cpsLabel");
+
+const costClickEl = document.getElementById("costClick");
+const costAutoEl = document.getElementById("costAuto");
+const upgClickBtn = document.getElementById("upgClick");
+const upgAutoBtn = document.getElementById("upgAuto");
+
+const cupSkinsGrid = document.getElementById("cupSkinsGrid");
+const cursorSkinsGrid = document.getElementById("cursorSkinsGrid");
+
+const blob1 = document.getElementById("blob1");
+const blob2 = document.getElementById("blob2");
+
+// NAVIGACE ZÁLOŽEK
+function switchTab(tabId) {
+    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    
+    event.target.classList.add("active");
+    document.getElementById("tab-" + tabId).classList.add("active");
+}
+
+// UPDATE DISPLEJE A HRY
+function updateDisplay() {
+    counter.textContent = Math.floor(clicks);
+
+    let fillPercentage = Math.min((clicks / 5000) * 100, 100);
+    cupFill.style.height = fillPercentage + "%";
+
+    if (clicks >= 5000) {
+        button.classList.add("maxed");
+        subtitleText.textContent = "🏆 Šálek přetekl! Jsi mistr barman! 🎉";
+        subtitleText.style.color = "#ffd700";
+    } else {
+        button.classList.remove("maxed");
+        subtitleText.textContent = "Naplň šálek až po okraj (cíl: 5000)!";
+        subtitleText.style.color = "#d2a882";
+    }
+
+    cpsLabel.textContent = `+${autoClickRate} kapek/s | Síla kliku: +${clickPower}`;
+    costClickEl.textContent = costClick;
+    costAutoEl.textContent = costAuto;
+
+    upgClickBtn.disabled = clicks < costClick;
+    upgAutoBtn.disabled = clicks < costAuto;
+
+    // Aplikace skinu hrnku
+    const activeCup = CUP_SKINS.find(s => s.id === equippedCupSkin) || CUP_SKINS[0];
+    button.className = "cup-container " + activeCup.class;
+    if (clicks >= 5000) button.classList.add("maxed");
+
+    // Aplikace barvy pozadí podle nasazeného hrnku
+    document.body.style.background = `linear-gradient(135deg, ${activeCup.bg[0]}, ${activeCup.bg[1]})`;
+    if (blob1 && blob2) {
+        blob1.style.background = activeCup.blob1;
+        blob2.style.background = activeCup.blob2;
+    }
+
+    // Aplikace skinu kurzoru
+    const activeCursor = CURSOR_SKINS.find(s => s.id === equippedCursorSkin) || CURSOR_SKINS[0];
+    document.body.style.cursor = activeCursor.cursorCss;
+
+    renderSkins();
+    saveData();
+}
+
+// VYKRESLENÍ SHOPU
+function renderSkins() {
+    // 1. Šálky
+    cupSkinsGrid.innerHTML = "";
+    CUP_SKINS.forEach(skin => {
+        const isOwned = ownedCupSkins.includes(skin.id);
+        const isEquipped = equippedCupSkin === skin.id;
+        const canAfford = clicks >= skin.price;
+
+        const card = document.createElement("div");
+        card.className = `skin-card ${isEquipped ? 'equipped' : ''} ${(!isOwned && !canAfford) ? 'disabled' : ''}`;
+        
+        let buttonText = "";
+        if (isEquipped) buttonText = "Aktivní";
+        else if (isOwned) buttonText = "Nasadit";
+        else buttonText = `Koupit (${skin.price} ☕)`;
+
+        card.innerHTML = `
+            <div class="skin-preview">${skin.icon}</div>
+            <div><strong>${skin.name}</strong></div>
+            <div style="margin-top: 4px; color: #ffd700;">${buttonText}</div>
+        `;
+
+        card.onclick = () => handleCupSkinClick(skin);
+        cupSkinsGrid.appendChild(card);
+    });
+
+    // 2. Kurzory
+    cursorSkinsGrid.innerHTML = "";
+    CURSOR_SKINS.forEach(skin => {
+        const isOwned = ownedCursorSkins.includes(skin.id);
+        const isEquipped = equippedCursorSkin === skin.id;
+        const canAfford = clicks >= skin.price;
+
+        const card = document.createElement("div");
+        card.className = `skin-card ${isEquipped ? 'equipped' : ''} ${(!isOwned && !canAfford) ? 'disabled' : ''}`;
+        
+        let buttonText = "";
+        if (isEquipped) buttonText = "Aktivní";
+        else if (isOwned) buttonText = "Nasadit";
+        else buttonText = `Koupit (${skin.price} ☕)`;
+
+        card.innerHTML = `
+            <div class="skin-preview">${skin.icon}</div>
+            <div><strong>${skin.name}</strong></div>
+            <div style="margin-top: 4px; color: #ffd700;">${buttonText}</div>
+        `;
+
+        card.onclick = () => handleCursorSkinClick(skin);
+        cursorSkinsGrid.appendChild(card);
+    });
+}
+
+// LOGIKA NÁKUPU A ZMĚNY SKINŮ HRNKU (resetuje kliky na 0)
+function handleCupSkinClick(skin) {
+    if (equippedCupSkin === skin.id) return;
+
+    if (ownedCupSkins.includes(skin.id)) {
+        if (confirm(`Nasadit nový hrnek "${skin.name}"? (Počet kliků se resetuje na 0)`)) {
+            equippedCupSkin = skin.id;
+            clicks = 0;
+        }
+    } else if (clicks >= skin.price) {
+        if (confirm(`Koupit a nasadit hrnek "${skin.name}" za ${skin.price} ☕? (Počet kliků se resetuje na 0)`)) {
+            clicks -= skin.price;
+            ownedCupSkins.push(skin.id);
+            equippedCupSkin = skin.id;
+            clicks = 0;
+        }
+    }
+    updateDisplay();
+}
+
+function handleCursorSkinClick(skin) {
+    if (ownedCursorSkins.includes(skin.id)) {
+        equippedCursorSkin = skin.id;
+    } else if (clicks >= skin.price) {
+        clicks -= skin.price;
+        ownedCursorSkins.push(skin.id);
+        equippedCursorSkin = skin.id;
+    }
+    updateDisplay();
+}
+
+function showFeedback(amount, x, y) {
+    const floatEl = document.createElement("div");
+    floatEl.className = "floating-number";
+    floatEl.textContent = "+" + amount;
+    floatEl.style.left = x + "px";
+    floatEl.style.top = y + "px";
+    document.body.appendChild(floatEl);
+    
+    setTimeout(() => {
+        floatEl.remove();
+    }, 700);
+}
+
+function addClicks(amount, event) {
+    clicks += amount;
+    updateDisplay();
+
+    if (event) {
+        const rect = event.target.getBoundingClientRect();
+        showFeedback(amount, rect.left + rect.width / 2, rect.top);
+    }
+}
+
+function buyUpgrade(type) {
+    if (type === 'click' && clicks >= costClick) {
+        clicks -= costClick;
+        clickPower += 1;
+        costClick = Math.floor(costClick * 1.5);
+    } else if (type === 'auto' && clicks >= costAuto) {
+        clicks -= costAuto;
+        autoClickRate += 1;
+        costAuto = Math.floor(costAuto * 1.6);
+    }
+    updateDisplay();
+}
+
+button.addEventListener("click", function(event) {
+    addClicks(clickPower);
+    const rect = button.getBoundingClientRect();
+    showFeedback(clickPower, rect.left + rect.width / 2 + (Math.random() * 40 - 20), rect.top);
+    
+    counter.classList.remove("pop");
+    void counter.offsetWidth;
+    counter.classList.add("pop");
+});
+
+// Automatický kávovar
+setInterval(() => {
+    if (autoClickRate > 0) {
+        clicks += autoClickRate;
+        updateDisplay();
+    }
+}, 1000);
+
+function saveData() {
+    localStorage.setItem("clicks", clicks);
+    localStorage.setItem("clickPower", clickPower);
+    localStorage.setItem("autoClickRate", autoClickRate);
+    localStorage.setItem("costClick", costClick);
+    localStorage.setItem("costAuto", costAuto);
+    localStorage.setItem("ownedCupSkins", JSON.stringify(ownedCupSkins));
+    localStorage.setItem("equippedCupSkin", equippedCupSkin);
+    localStorage.setItem("ownedCursorSkins", JSON.stringify(ownedCursorSkins));
+    localStorage.setItem("equippedCursorSkin", equippedCursorSkin);
+}
+
+function resetClicks() {
+    if (confirm("Opravdu chceš resetovat celou hru včetně skinů?")) {
+        clicks = 0;
+        clickPower = 1;
+        autoClickRate = 0;
+        costClick = 50;
+        costAuto = 100;
+        ownedCupSkins = ["classic"];
+        equippedCupSkin = "classic";
+        ownedCursorSkins = ["default"];
+        equippedCursorSkin = "default";
+        updateDisplay();
+    }
+}
+
+updateDisplay();
+
+</script>
+
+</body>
+</html>
